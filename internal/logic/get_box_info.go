@@ -1,6 +1,10 @@
 package logic
 
-import "github.com/hust-tianbo/game_logic/internal/mdb"
+import (
+	"sort"
+
+	"github.com/hust-tianbo/game_logic/internal/mdb"
+)
 
 type GetBoxInfoReq struct {
 	PersonID string `json:"personid"`
@@ -62,7 +66,11 @@ func GetBoxInfo(req GetBoxInfoReq) GetBoxInfoRsp {
 					})
 				}
 			}
+
 		}
+		sort.Slice(tempBox.BoxPrizes, func(i, j int) bool {
+			return tempBox.BoxPrizes[i].Level < tempBox.BoxPrizes[j].Level
+		})
 		rsp.BoxList = append(rsp.BoxList, tempBox)
 	}
 	return rsp
