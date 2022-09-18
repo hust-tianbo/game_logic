@@ -65,5 +65,5 @@ func GetBoxInfo(req GetBoxInfoReq) GetBoxInfoRsp {
 		}
 		rsp.BoxList = append(rsp.BoxList, tempBox)
 	}
-	return GetBoxInfoRsp{}
+	return rsp
 }
