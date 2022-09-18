@@ -12,8 +12,6 @@ import (
 var gConfig = &atomic.Value{}
 
 type Config struct {
-	Port       string `yaml:"port"`        // 端口号
-	DeviceList []int  `yaml:"device_list"` // 设备号
 }
 
 func GetConfig() *Config {

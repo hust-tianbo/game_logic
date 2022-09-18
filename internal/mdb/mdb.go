@@ -14,7 +14,7 @@ var BoxList []model.BoxInfo
 var PrizeList []model.PrizeInfo
 var BoxToPrizeList []model.BoxToPrize
 
-var lock sync.Locker
+var lock sync.Mutex
 
 func refreshBox(db *gorm.DB) error {
 	var boxList []model.BoxInfo
@@ -112,4 +112,17 @@ func LoopRefresh(db *gorm.DB) bool {
 	}()
 
 	return true
+}
+
+func GetInfo() ([]model.BoxInfo, map[int]model.PrizeInfo, []model.BoxToPrize) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	var tmpBox = BoxList
+	var tmpPrize = make(map[int]model.PrizeInfo)
+	for _, ele := range PrizeList {
+		tmpPrize[ele.PrizeID] = ele
+	}
+	var tmpBoxToPrize = BoxToPrizeList
+	return tmpBox, tmpPrize, tmpBoxToPrize
 }

@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/hust-tianbo/game_logic/config"
+
 	"github.com/hust-tianbo/game_logic/internal/logic"
 
 	"github.com/hust-tianbo/go_lib/log"
@@ -17,7 +19,7 @@ const (
 func main() {
 	//modbus.get()
 	log.Debugf("begin logic server")
-	//config.InitConfig()
+	config.InitConfig()
 
 	// 注册http接口
 	mux := GetHttpServerMux()
