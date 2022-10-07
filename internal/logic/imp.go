@@ -10,7 +10,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-var db *gorm.DB
+var BoxDb *gorm.DB
+var UserAssetDb *gorm.DB
 
 func init() {
 	// 随机数种子
@@ -18,14 +19,20 @@ func init() {
 
 	// 连接db
 	var err error
-	db, err = gorm.Open("mysql", "root:1023564552tbd@tcp(172.16.0.8:3306)/box?charset=utf8&parseTime=True&loc=Local")
+	BoxDb, err = gorm.Open("mysql", "root:1023564552tbd@tcp(172.16.0.8:3306)/box?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		panic(err)
 	}
 
-	initSuccess := mdb.LoopRefresh(db)
+	UserAssetDb, err = gorm.Open("mysql", "root:1023564552tbd@tcp(172.16.0.8:3306)/user_asset?charset=utf8&parseTime=True&loc=Local")
+	if err != nil {
+		panic(err)
+	}
+
+	initSuccess := mdb.LoopRefresh(BoxDb)
 	if !initSuccess {
 		panic("fresh db info failed")
 	}
-	db.SingularTable(true)
+	BoxDb.SingularTable(true)
+	UserAssetDb.SingularTable(true)
 }
