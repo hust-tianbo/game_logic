@@ -95,6 +95,7 @@ func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
 	}
 
 	rsp.Ret = lib.RetSuccess
+	rsp.PayID = user_box_Id
 
 	return rsp
 }
