@@ -39,7 +39,7 @@ func initAcquireBox(personId string, userBoxID string, boxID int) error {
 		Status:     model.BoxStatusInit,
 	})
 	if dbRes.Error != nil || dbRes.RowsAffected != 1 {
-		log.Errorf("[initAcquireBox]init failed:%+v,%+v,%+v", personId, userBoxID, boxID)
+		log.Errorf("[initAcquireBox]init failed:%+v,%+v,%+v,%+v", personId, userBoxID, boxID, dbRes.Error)
 		return fmt.Errorf("init failed")
 	}
 	return nil
