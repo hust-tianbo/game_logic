@@ -22,7 +22,7 @@ type GetUserBoxListRsp struct {
 
 func getUserBox(db *gorm.DB, personId string) ([]model.UserBox, error) {
 	var userBox []model.UserBox
-	dbRes := db.Table(model.UserBoxTable).Where("person_id", personId).Find(&userBox)
+	dbRes := db.Table(model.UserBoxTable).Where("person_id=?", personId).Find(&userBox)
 
 	// 如果没有查到UserBox
 	if dbRes.Error != nil && !dbRes.RecordNotFound() {
