@@ -7,15 +7,18 @@ import (
 	"github.com/hust-tianbo/go_lib/log"
 
 	"github.com/hust-tianbo/game_logic/internal/model"
+	"github.com/hust-tianbo/game_logic/lib"
 )
 
 type AcquireBoxReq struct {
 	PersonID string `json:"personid"`
+	BoxID    int    `json:"boxid"`
 }
 
 type AcquireBoxRsp struct {
-	Ret int    `json:"ret"` // 错误码
-	Msg string `json:"msg"` // 错误信息
+	Ret   int    `json:"ret"`   // 错误码
+	Msg   string `json:"msg"`   // 错误信息
+	PayID string `json:"payid"` // 支付id
 }
 
 // 获取盒子的价格信息
@@ -56,8 +59,78 @@ func finishAcquireBox(personId string, userBoxID string) error {
 	return nil
 }
 
-func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
-	//boxMoney := getBoxMoney()
+// 生成支付订单
+func genePayOrder(money int, payID string) error {
+	return nil
+}
 
-	return AcquireBoxRsp{}
+// 支付订单状态确认
+func payOrderCheck(payID string) error {
+	return nil
+}
+
+// 获取盒子的第一阶段
+func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
+	boxMoney := getBoxMoney()
+
+	var rsp AcquireBoxRsp
+
+	// 生成订单id
+	user_box_Id := lib.GeneID(req.PersonID)
+
+	// 初始化订单
+	initErr := initAcquireBox(req.PersonID, user_box_Id, req.BoxID)
+	if initErr != nil {
+		log.Errorf("[AcquireBox]initAcquireBox failed:%+v,%+v", req, initErr)
+		rsp.Ret = lib.RetInternalError
+		return rsp
+	}
+
+	// 生成付款单据
+	payErr := genePayOrder(boxMoney, user_box_Id)
+	if payErr != nil {
+		log.Errorf("[AcquireBox]genePayOrder failed:%+v,%+v", req, payErr)
+		rsp.Ret = lib.RetInternalError
+		return rsp
+	}
+
+	rsp.Ret = lib.RetSuccess
+
+	return rsp
+}
+
+type AcquireBoxCheckReq struct {
+	PersonID string `json:"personid"`
+	BoxID    int    `json:"boxid"`
+	PayID    string `json:"payid"` // 支付id
+}
+
+type AcquireBoxCheckRsp struct {
+	Ret int    `json:"ret"` // 错误码
+	Msg string `json:"msg"` // 错误信息
+}
+
+// 获取盒子的确认阶段，需要查询支付状态
+func AcquireBoxCheck(req *AcquireBoxCheckReq) AcquireBoxCheckRsp {
+	var rsp AcquireBoxCheckRsp
+
+	// 校验订单状态
+	checkErr := payOrderCheck(req.PayID)
+	if checkErr != nil {
+		log.Errorf("[AcquireBoxCheck]check failed:%+v,%+v,%+v", req.PersonID, req.PayID, req.PayID)
+		rsp.Ret = lib.RetInternalError
+		return rsp
+	}
+
+	// 完成订单，获得盒子
+	finishErr := finishAcquireBox(req.PersonID, req.PayID)
+	if finishErr != nil {
+		log.Errorf("[AcquireBox]finishAcquireBox failed:%+v,%+v", req, finishErr)
+		rsp.Ret = lib.RetInternalError
+		return rsp
+	}
+
+	rsp.Ret = lib.RetSuccess
+
+	return rsp
 }

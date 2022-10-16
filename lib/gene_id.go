@@ -13,5 +13,5 @@ func init() {
 func GeneID(personId string) string {
 	unixNano := time.Now().UnixNano()
 	randInt := rand.Intn(10000)
-	return fmt.Sprintf("%s%d%d", personId, unixNano, randInt)
+	return fmt.Sprintf("%s_%d_%d", personId, unixNano, randInt)
 }

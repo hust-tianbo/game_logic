@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/hust-tianbo/game_logic/internal/mdb"
+	"github.com/hust-tianbo/game_logic/internal/model"
 )
 
 type GetBoxInfoReq struct {
@@ -39,10 +40,8 @@ type GetBoxInfoRsp struct {
 	BoxList []BoxInfo `json:"box_list"` // 盒子列表，后端排序
 }
 
-func GetBoxInfo(req GetBoxInfoReq) GetBoxInfoRsp {
-	var rsp GetBoxInfoRsp
-	rsp.BoxList = make([]BoxInfo, 0)
-	boxList, prizeList, boxToPrize := mdb.GetInfo()
+func convertRsp(boxList []model.BoxInfo, prizeList map[int]model.PrizeInfo, boxToPrize []model.BoxToPrize) []BoxInfo {
+	output := make([]BoxInfo, 0)
 	for _, eleBox := range boxList {
 		var tempBox = BoxInfo{
 			BoxID:          eleBox.BoxID,
@@ -71,7 +70,15 @@ func GetBoxInfo(req GetBoxInfoReq) GetBoxInfoRsp {
 		sort.Slice(tempBox.BoxPrizes, func(i, j int) bool {
 			return tempBox.BoxPrizes[i].Level < tempBox.BoxPrizes[j].Level
 		})
-		rsp.BoxList = append(rsp.BoxList, tempBox)
+		output = append(output, tempBox)
 	}
+	return output
+}
+
+func GetBoxInfo(req GetBoxInfoReq) GetBoxInfoRsp {
+	var rsp GetBoxInfoRsp
+	rsp.BoxList = make([]BoxInfo, 0)
+	boxList, prizeList, boxToPrize := mdb.GetInfo()
+	rsp.BoxList = convertRsp(boxList, prizeList, boxToPrize)
 	return rsp
 }
