@@ -16,7 +16,7 @@ import (
 type AcquirePrizeReq struct {
 	PersonID string `json:"personid"`
 	BoxID    int    `json:"boxid"`
-	PayID    string `json:"pay_id"`
+	PayID    string `json:"payid"`
 }
 
 type AcquirePrizeRsp struct {
@@ -115,6 +115,12 @@ func acquirePrize(tx *gorm.DB, personId string, userBoxID string, prizeID int) e
 // 用户使用box
 func AcquirePrize(req *AcquirePrizeReq) AcquirePrizeRsp {
 	var rsp AcquirePrizeRsp
+
+	if req.PayID == "" {
+		log.Errorf("[AcquirePrize]param invalid:%+v", req)
+		rsp.Ret = lib.RetParamError
+		return rsp
+	}
 
 	// 生成一个奖励物品
 	prizeInfo, geneErr := genePrize(req.BoxID)
