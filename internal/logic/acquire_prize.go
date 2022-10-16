@@ -84,7 +84,7 @@ func consumeBox(tx *gorm.DB, personId string, userBoxID string) error {
 	nowTime := time.Now()
 
 	// 需要更新状态，到已经获取成功的状态
-	dbRes := UserAssetDb.Table(model.UserBoxTable).Where(&model.UserBox{PersonID: personId, UserBoxID: userBoxID}).Update(map[string]interface{}{
+	dbRes := UserAssetDb.Table(model.UserBoxTable).Where(&model.UserBox{PersonID: personId, UserBoxID: userBoxID, Status: model.BoxStatusSuccess}).Update(map[string]interface{}{
 		"status": model.BoxStatusConsume, "m_time": nowTime})
 
 	if dbRes.Error != nil || dbRes.RowsAffected != 1 {
