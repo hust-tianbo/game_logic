@@ -14,9 +14,9 @@ import (
 )
 
 type AcquirePrizeReq struct {
-	PersonID  string `json:"personid"`
-	BoxID     int    `json:"boxid"`
-	UserBoxID string `json:"user_box_id"`
+	PersonID string `json:"personid"`
+	BoxID    int    `json:"boxid"`
+	PayID    string `json:"pay_id"`
 }
 
 type AcquirePrizeRsp struct {
@@ -126,8 +126,8 @@ func AcquirePrize(req *AcquirePrizeReq) AcquirePrizeRsp {
 
 	// 消耗盒子同时写入奖励物品
 	tx := UserAssetDb.Begin()
-	if consumeBox(tx, req.PersonID, req.UserBoxID) != nil ||
-		acquirePrize(tx, req.PersonID, req.UserBoxID, prizeInfo.PrizeID) != nil {
+	if consumeBox(tx, req.PersonID, req.PayID) != nil ||
+		acquirePrize(tx, req.PersonID, req.PayID, prizeInfo.PrizeID) != nil {
 		log.Errorf("[AcquirePrize]second failed:%+v", req)
 		tx.Rollback()
 		rsp.Ret = lib.RetInternalError
