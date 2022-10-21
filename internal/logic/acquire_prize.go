@@ -84,11 +84,11 @@ func consumeBox(tx *gorm.DB, personId string, userBoxID string) error {
 	nowTime := time.Now()
 
 	// 需要更新状态，到已经获取成功的状态
-	dbRes := UserAssetDb.Table(model.UserBoxTable).Where(&model.UserBox{PersonID: personId, UserBoxID: userBoxID, Status: model.BoxStatusSuccess}).Update(map[string]interface{}{
+	dbRes := tx.Table(model.UserBoxTable).Where(&model.UserBox{PersonID: personId, UserBoxID: userBoxID, Status: model.BoxStatusSuccess}).Update(map[string]interface{}{
 		"status": model.BoxStatusConsume, "m_time": nowTime})
 
 	if dbRes.Error != nil || dbRes.RowsAffected != 1 {
-		log.Errorf("[finishAcquireBox]acquire box success:%+v,%+v", personId, userBoxID)
+		log.Errorf("[consumeBox]consume box failed:%+v,%+v,%+v", personId, userBoxID, dbRes.Error)
 		return fmt.Errorf("finish acquire failed")
 	}
 	return nil
@@ -96,7 +96,7 @@ func consumeBox(tx *gorm.DB, personId string, userBoxID string) error {
 
 func acquirePrize(tx *gorm.DB, personId string, userBoxID string, prizeID int) error {
 	now := time.Now()
-	dbRes := UserAssetDb.Table(model.UserPrizeTable).Create(&model.UserPrize{
+	dbRes := tx.Table(model.UserPrizeTable).Create(&model.UserPrize{
 		PersonID:    personId,
 		UserPrizeID: userBoxID,
 		PrizeID:     prizeID,
@@ -106,7 +106,7 @@ func acquirePrize(tx *gorm.DB, personId string, userBoxID string, prizeID int) e
 		Status:      model.PrizeStatusSuccess,
 	})
 	if dbRes.Error != nil || dbRes.RowsAffected != 1 {
-		log.Errorf("[acquirePrize]init failed:%+v,%+v,%+v", personId, userBoxID, prizeID)
+		log.Errorf("[acquirePrize]init failed:%+v,%+v,%+v,%+v", personId, userBoxID, prizeID, dbRes.Error)
 		return fmt.Errorf("init failed")
 	}
 	return nil
