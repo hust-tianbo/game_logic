@@ -12,6 +12,9 @@ import (
 var gConfig = &atomic.Value{}
 
 type Config struct {
+	DBUser   string `yaml:"db_user"`
+	DBSecret string `yaml:"db_secret"`
+	DBIP     string `yaml:"db_ip"`
 }
 
 func GetConfig() *Config {

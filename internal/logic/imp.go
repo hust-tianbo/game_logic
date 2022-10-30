@@ -1,9 +1,11 @@
 package logic
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
+	"github.com/hust-tianbo/game_logic/config"
 	"github.com/hust-tianbo/game_logic/internal/mdb"
 
 	"github.com/jinzhu/gorm"
@@ -13,18 +15,19 @@ import (
 var BoxDb *gorm.DB
 var UserAssetDb *gorm.DB
 
-func init() {
+func InitImp() {
+	cf := config.GetConfig()
 	// 随机数种子
 	rand.Seed(time.Now().Unix())
 
 	// 连接db
 	var err error
-	BoxDb, err = gorm.Open("mysql", "root:1023564552tbd@tcp(172.16.0.8:3306)/box?charset=utf8&parseTime=True&loc=Local")
+	BoxDb, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/box?charset=utf8&parseTime=True&loc=Local", cf.DBUser, cf.DBSecret, cf.DBIP))
 	if err != nil {
 		panic(err)
 	}
 
-	UserAssetDb, err = gorm.Open("mysql", "root:1023564552tbd@tcp(172.16.0.8:3306)/user_asset?charset=utf8&parseTime=True&loc=Local")
+	UserAssetDb, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s)/user_asset?charset=utf8&parseTime=True&loc=Local", cf.DBUser, cf.DBSecret, cf.DBIP))
 	if err != nil {
 		panic(err)
 	}

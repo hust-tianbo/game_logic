@@ -19,6 +19,8 @@ func main() {
 	log.Debugf("begin logic server")
 	config.InitConfig()
 
+	logic.InitImp()
+
 	// 注册http接口
 	mux := GetHttpServerMux()
 	http.ListenAndServe(port, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
