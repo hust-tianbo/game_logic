@@ -5,10 +5,12 @@ import (
 
 	"github.com/hust-tianbo/game_logic/internal/mdb"
 	"github.com/hust-tianbo/game_logic/internal/model"
+	"github.com/hust-tianbo/game_logic/lib"
 )
 
 type GetBoxInfoReq struct {
-	PersonID string `json:"personid"`
+	PersonID      string `json:"personid"`
+	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
 }
 
 // 盒子信息
@@ -81,6 +83,12 @@ func convertRsp(boxList []model.BoxInfo, prizeList map[int]model.PrizeInfo, boxT
 
 func GetBoxInfo(req GetBoxInfoReq) GetBoxInfoRsp {
 	var rsp GetBoxInfoRsp
+	// 校验登录态
+	if !lib.CheckToken(req.PersonID, req.InternalToken) {
+		rsp.Ret = lib.RetTokenNotValid
+		return rsp
+	}
+
 	rsp.BoxList = make([]BoxInfo, 0)
 	boxList, prizeList, boxToPrize := mdb.GetInfo()
 	rsp.BoxList = convertRsp(boxList, prizeList, boxToPrize)

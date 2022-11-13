@@ -14,9 +14,10 @@ import (
 )
 
 type AcquirePrizeReq struct {
-	PersonID string `json:"personid"`
-	BoxID    int    `json:"boxid"`
-	PayID    string `json:"payid"`
+	PersonID      string `json:"personid"`
+	BoxID         int    `json:"boxid"`
+	PayID         string `json:"payid"`
+	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
 }
 
 type AcquirePrizeRsp struct {
@@ -115,6 +116,12 @@ func acquirePrize(tx *gorm.DB, personId string, userBoxID string, prizeID int) e
 // 用户使用box
 func AcquirePrize(req *AcquirePrizeReq) AcquirePrizeRsp {
 	var rsp AcquirePrizeRsp
+
+	// 校验登录态
+	if !lib.CheckToken(req.PersonID, req.InternalToken) {
+		rsp.Ret = lib.RetTokenNotValid
+		return rsp
+	}
 
 	if req.PayID == "" {
 		log.Errorf("[AcquirePrize]param invalid:%+v", req)

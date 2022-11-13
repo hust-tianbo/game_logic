@@ -10,6 +10,8 @@ import (
 
 type GetUserBoxListReq struct {
 	PersonID string `json:"personid"`
+
+	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
 }
 
 type GetUserBoxListRsp struct {
@@ -36,6 +38,12 @@ func getUserBox(db *gorm.DB, personId string) ([]model.UserBox, error) {
 
 func GetUserBoxList(req *GetUserBoxListReq) GetUserBoxListRsp {
 	var rsp GetUserBoxListRsp
+	// 校验登录态
+	if !lib.CheckToken(req.PersonID, req.InternalToken) {
+		rsp.Ret = lib.RetTokenNotValid
+		return rsp
+	}
+
 	rsp.UserBox = make([]model.UserBox, 0)
 	rsp.AllBoxList = make([]BoxInfo, 0)
 	userBoxList, getErr := getUserBox(UserAssetDb, req.PersonID)

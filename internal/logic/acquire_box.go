@@ -12,8 +12,9 @@ import (
 )
 
 type AcquireBoxReq struct {
-	PersonID string `json:"personid"`
-	BoxID    int    `json:"boxid"`
+	PersonID      string `json:"personid"`
+	BoxID         int    `json:"boxid"`
+	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
 }
 
 type AcquireBoxRsp struct {
@@ -74,6 +75,12 @@ func payOrderCheck(payID string) error {
 func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
 	var rsp AcquireBoxRsp
 
+	// 校验登录态
+	if !lib.CheckToken(req.PersonID, req.InternalToken) {
+		rsp.Ret = lib.RetTokenNotValid
+		return rsp
+	}
+
 	// 查询盒子的信息
 	boxInfo, boxExist := mdb.GetOneBoxInfo(req.BoxID)
 	if !boxExist {
@@ -110,9 +117,10 @@ func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
 }
 
 type AcquireBoxCheckReq struct {
-	PersonID string `json:"personid"`
-	BoxID    int    `json:"boxid"`
-	PayID    string `json:"payid"` // 支付id
+	PersonID      string `json:"personid"`
+	BoxID         int    `json:"boxid"`
+	PayID         string `json:"payid"`          // 支付id
+	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
 }
 
 type AcquireBoxCheckRsp struct {
@@ -123,6 +131,12 @@ type AcquireBoxCheckRsp struct {
 // 获取盒子的确认阶段，需要查询支付状态
 func AcquireBoxCheck(req *AcquireBoxCheckReq) AcquireBoxCheckRsp {
 	var rsp AcquireBoxCheckRsp
+
+	// 校验登录态
+	if !lib.CheckToken(req.PersonID, req.InternalToken) {
+		rsp.Ret = lib.RetTokenNotValid
+		return rsp
+	}
 
 	// 校验订单状态
 	checkErr := payOrderCheck(req.PayID)
