@@ -6,6 +6,7 @@ import (
 
 	"github.com/hust-tianbo/go_lib/log"
 
+	"github.com/hust-tianbo/game_logic/internal/mdb"
 	"github.com/hust-tianbo/game_logic/internal/model"
 	"github.com/hust-tianbo/game_logic/lib"
 )
@@ -22,8 +23,8 @@ type AcquireBoxRsp struct {
 }
 
 // 获取盒子的价格信息
-func getBoxMoney() int {
-	return 0
+func getBoxMoney(info *model.BoxInfo) int {
+	return info.BoxPrice
 }
 
 // 初始化一条盒子购买记录
@@ -71,9 +72,17 @@ func payOrderCheck(payID string) error {
 
 // 获取盒子的第一阶段
 func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
-	boxMoney := getBoxMoney()
-
 	var rsp AcquireBoxRsp
+
+	// 查询盒子的信息
+	boxInfo, boxExist := mdb.GetOneBoxInfo(req.BoxID)
+	if !boxExist {
+		log.Errorf("[AcquireBox]init failed:%+v,%+v", boxInfo, boxExist)
+		rsp.Ret = lib.RetNotFindBox
+		return rsp
+	}
+
+	boxMoney := getBoxMoney(&boxInfo)
 
 	// 生成订单id
 	user_box_Id := lib.GeneID(req.PersonID)

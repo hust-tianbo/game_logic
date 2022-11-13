@@ -126,3 +126,27 @@ func GetInfo() ([]model.BoxInfo, map[int]model.PrizeInfo, []model.BoxToPrize) {
 	var tmpBoxToPrize = BoxToPrizeList
 	return tmpBox, tmpPrize, tmpBoxToPrize
 }
+
+func GetOneBoxInfo(boxID int) (model.BoxInfo, bool) {
+	lock.Lock()
+	defer lock.Lock()
+
+	for _, ele := range BoxList {
+		if ele.BoxID == boxID {
+			return ele, true
+		}
+	}
+	return model.BoxInfo{}, false
+}
+
+func GetOnePriceInfo(prizeID int) (model.PrizeInfo, bool) {
+	lock.Lock()
+	defer lock.Lock()
+
+	for _, ele := range PrizeList {
+		if ele.PrizeID == prizeID {
+			return ele, true
+		}
+	}
+	return model.PrizeInfo{}, false
+}

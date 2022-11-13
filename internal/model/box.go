@@ -10,6 +10,8 @@ type BoxInfo struct {
 	BoxName        string `gorm:"column:box_name"`        // 盒子名字
 	BoxPic         string `gorm:"column:box_pic"`         // 盒子封面
 	BoxDescription string `gorm:"column:box_description"` // 盒子描述
+	BoxType        int    `gorm:"column:box_type"`        // 盒子类型 type:1 现金; type:2 金币
+	BoxPrice       int    `gorm:"column:box_price"`       // 数量
 }
 
 // 奖品信息

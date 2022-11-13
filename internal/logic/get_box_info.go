@@ -18,6 +18,8 @@ type BoxInfo struct {
 	BoxPic         string              `json:"box_Pic"`         // 盒子封面
 	BoxDescription string              `json:"box_description"` // 盒子描述
 	BoxPrizes      []PrizeInfoWithRate `json:"box_prizes"`      // 盒子中的奖品信息
+	BoxType        int                 `json:"box_type"`        // 盒子类型 type:1 现金; type:2 金币
+	BoxPrice       int                 `json:"box_price"`       // 数量
 }
 
 type PrizeInfoWithRate struct {
@@ -48,6 +50,8 @@ func convertRsp(boxList []model.BoxInfo, prizeList map[int]model.PrizeInfo, boxT
 			BoxName:        eleBox.BoxName,
 			BoxPic:         eleBox.BoxPic,
 			BoxDescription: eleBox.BoxDescription,
+			BoxType:        eleBox.BoxType,
+			BoxPrice:       eleBox.BoxPrice,
 			BoxPrizes:      make([]PrizeInfoWithRate, 0),
 		}
 		for _, eleRela := range boxToPrize {

@@ -7,4 +7,6 @@ const (
 	RetParamError    = -10002 // 参数错误
 
 	RetNotFindPrize = -20002 // 未发现奖励
+
+	RetNotFindBox = -20003 // 未找到盒子
 )
