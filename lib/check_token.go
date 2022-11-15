@@ -1,13 +1,20 @@
 package lib
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/hust-tianbo/go_lib/log"
 )
+
+type CheckAuthReq struct {
+	PersonID      string `json:"personid"`
+	Code          string `json:"code"`           // 平台返回的code码
+	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
+	ReturnWXToken bool   `json:"return_wxtoken"`
+}
 
 type CheckAuthRsp struct {
 	Ret           int    `json:"ret"`            // 错误码
@@ -17,12 +24,20 @@ type CheckAuthRsp struct {
 	WXToken       string `json:"wxtoken"`
 }
 
-func CheckToken(pid string, token string) bool {
-	url := fmt.Sprintf("http://127.0.0.1:50052/check_auth?personid=%+v&internal_token=%+v", pid, token)
+const CheckAuthUrl string = "http://127.0.0.1:50052/check_auth"
 
-	resp, err := http.Get(url)
+func CheckToken(pid string, token string) bool {
+	req := CheckAuthReq{
+		PersonID:      pid,
+		InternalToken: token,
+		ReturnWXToken: true,
+	}
+
+	bytesData, _ := json.Marshal(req)
+
+	resp, err := http.Post(CheckAuthUrl, "application/json;charset=utf-8", bytes.NewBuffer([]byte(bytesData)))
 	if err != nil {
-		log.Errorf("[CheckToken]req failed:%+|%+v", url, err)
+		log.Errorf("[CheckToken]req failed:%+|%+v", CheckAuthUrl, err)
 		return false
 	}
 
@@ -41,11 +56,16 @@ func CheckToken(pid string, token string) bool {
 }
 
 func CheckTokenDirect(code string) (*CheckAuthRsp, bool) {
-	url := fmt.Sprintf("http://127.0.0.1:50052/check_auth?code=%+v&return_wxtoken=%+v", code, true)
+	req := CheckAuthReq{
+		Code:          code,
+		ReturnWXToken: true,
+	}
 
-	resp, err := http.Get(url)
+	bytesData, _ := json.Marshal(req)
+
+	resp, err := http.Post(CheckAuthUrl, "application/json;charset=utf-8", bytes.NewBuffer([]byte(bytesData)))
 	if err != nil {
-		log.Errorf("[CheckToken]req failed:%+|%+v", url, err)
+		log.Errorf("[CheckToken]req failed:%+|%+v", CheckAuthUrl, err)
 		return nil, false
 	}
 
