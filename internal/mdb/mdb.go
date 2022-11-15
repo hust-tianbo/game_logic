@@ -129,7 +129,7 @@ func GetInfo() ([]model.BoxInfo, map[int]model.PrizeInfo, []model.BoxToPrize) {
 
 func GetOneBoxInfo(boxID int) (model.BoxInfo, bool) {
 	lock.Lock()
-	defer lock.Lock()
+	defer lock.Unlock()
 
 	for _, ele := range BoxList {
 		if ele.BoxID == boxID {
@@ -141,7 +141,7 @@ func GetOneBoxInfo(boxID int) (model.BoxInfo, bool) {
 
 func GetOnePriceInfo(prizeID int) (model.PrizeInfo, bool) {
 	lock.Lock()
-	defer lock.Lock()
+	defer lock.Unlock()
 
 	for _, ele := range PrizeList {
 		if ele.PrizeID == prizeID {

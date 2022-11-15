@@ -65,7 +65,7 @@ func CheckTokenDirect(code string) (*CheckAuthRsp, bool) {
 
 	resp, err := http.Post(CheckAuthUrl, "application/json;charset=utf-8", bytes.NewBuffer([]byte(bytesData)))
 	if err != nil {
-		log.Errorf("[CheckToken]req failed:%+|%+v", CheckAuthUrl, err)
+		log.Errorf("[CheckToken]req failed:%+v|%+v", CheckAuthUrl, err)
 		return nil, false
 	}
 
