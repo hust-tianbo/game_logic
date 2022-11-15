@@ -5,10 +5,10 @@ import (
 
 	"github.com/hust-tianbo/game_logic/config"
 	"github.com/hust-tianbo/go_lib/log"
-	"github.com/wechatpay-apiv3/wecahtpay-go/services/payments/jsapi"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 )
 
