@@ -98,5 +98,18 @@ func GetHttpServerMux() *http.ServeMux {
 		resBytes, _ := json.Marshal(rsp)
 		w.Write([]byte(resBytes))
 	})
+	mux.HandleFunc("/notify", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := ioutil.ReadAll(r.Body)
+		var req logic.NotifyReq
+		json.Unmarshal(body, &req)
+		var rsp logic.NotifyRsp
+		defer func() {
+			log.Debugf("[GetHttpServerMux]deal log:%+v,%+v", req, rsp)
+		}()
+
+		rsp = *logic.Notify(&req)
+		resBytes, _ := json.Marshal(rsp)
+		w.Write([]byte(resBytes))
+	})
 	return mux
 }

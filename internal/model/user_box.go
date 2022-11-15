@@ -23,4 +23,5 @@ type UserBox struct {
 	MTime      time.Time `gorm:"column:m_time"`
 	BuyChannel int       `gorm:"column:buy_channel"`
 	Status     int       `gorm:"column:status"`
+	PrePayID   string    `gorm:"column:pre_pay_id"`
 }

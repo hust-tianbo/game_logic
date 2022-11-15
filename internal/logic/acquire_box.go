@@ -6,21 +6,22 @@ import (
 
 	"github.com/hust-tianbo/go_lib/log"
 
+	"github.com/hust-tianbo/game_logic/client/wxpay"
 	"github.com/hust-tianbo/game_logic/internal/mdb"
 	"github.com/hust-tianbo/game_logic/internal/model"
 	"github.com/hust-tianbo/game_logic/lib"
 )
 
 type AcquireBoxReq struct {
-	PersonID      string `json:"personid"`
-	BoxID         int    `json:"boxid"`
-	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
+	BoxID int    `json:"boxid"`
+	Code  string `json:"code"` // 微信票据
 }
 
 type AcquireBoxRsp struct {
-	Ret   int    `json:"ret"`   // 错误码
-	Msg   string `json:"msg"`   // 错误信息
-	PayID string `json:"payid"` // 支付id
+	Ret       int    `json:"ret"`         // 错误码
+	Msg       string `json:"msg"`         // 错误信息
+	PayID     string `json:"payid"`       // 支付id
+	UserBoxID string `json:"user_box_id"` // 内部订单id
 }
 
 // 获取盒子的价格信息
@@ -47,11 +48,25 @@ func initAcquireBox(personId string, userBoxID string, boxID int) error {
 	return nil
 }
 
-func finishAcquireBox(personId string, userBoxID string) error {
+func updateCashPrePay(personId string, userBoxID string, prePayId string) error {
 	nowTime := time.Now()
 
 	// 需要更新状态，到已经获取成功的状态
 	dbRes := UserAssetDb.Table(model.UserBoxTable).Where(&model.UserBox{PersonID: personId, UserBoxID: userBoxID}).Update(map[string]interface{}{
+		"pre_pay_id": prePayId, "m_time": nowTime})
+
+	if dbRes.Error != nil || dbRes.RowsAffected != 1 {
+		log.Errorf("[finishAcquireBox]acquire box success:%+v,%+v", personId, userBoxID)
+		return fmt.Errorf("finish acquire failed")
+	}
+	return nil
+}
+
+func finishAcquireBox(personId string, userBoxID string, prePayId string) error {
+	nowTime := time.Now()
+
+	// 需要更新状态，到已经获取成功的状态
+	dbRes := UserAssetDb.Table(model.UserBoxTable).Where(&model.UserBox{PersonID: personId, UserBoxID: userBoxID, PrePayID: prePayId}).Update(map[string]interface{}{
 		"status": model.BoxStatusSuccess, "m_time": nowTime})
 
 	if dbRes.Error != nil || dbRes.RowsAffected != 1 {
@@ -62,13 +77,21 @@ func finishAcquireBox(personId string, userBoxID string) error {
 }
 
 // 生成支付订单
-func genePayOrder(money int, payID string) error {
-	return nil
+func genePayOrder(money int, payID string, openid string) (string, error) {
+	rsp, preErr := wxpay.PreOrder(payID, money, openid)
+	if preErr != nil {
+		return "", preErr
+	}
+	return *rsp.PrepayId, nil
 }
 
 // 支付订单状态确认
-func payOrderCheck(payID string) error {
-	return nil
+func payOrderCheck(payID string) bool {
+	rsp, checkErr := wxpay.CheckOrder(payID)
+	if checkErr != nil {
+		return false
+	}
+	return *rsp.TradeState == "SUCCESS"
 }
 
 // 获取盒子的第一阶段
@@ -76,7 +99,8 @@ func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
 	var rsp AcquireBoxRsp
 
 	// 校验登录态
-	if !lib.CheckToken(req.PersonID, req.InternalToken) {
+	userInfo, checkInfo := lib.CheckTokenDirect(req.Code)
+	if !checkInfo {
 		rsp.Ret = lib.RetTokenNotValid
 		return rsp
 	}
@@ -91,11 +115,17 @@ func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
 
 	boxMoney := getBoxMoney(&boxInfo)
 
+	if boxMoney <= 0 {
+		log.Errorf("[AcquireBox]box money invalid:%+v", boxMoney)
+		rsp.Ret = lib.RetInternalError
+		return rsp
+	}
+
 	// 生成订单id
-	user_box_Id := lib.GeneID(req.PersonID)
+	user_box_Id := lib.GeneID(userInfo.PersonID)
 
 	// 初始化订单
-	initErr := initAcquireBox(req.PersonID, user_box_Id, req.BoxID)
+	initErr := initAcquireBox(userInfo.PersonID, user_box_Id, req.BoxID)
 	if initErr != nil {
 		log.Errorf("[AcquireBox]initAcquireBox failed:%+v,%+v", req, initErr)
 		rsp.Ret = lib.RetInternalError
@@ -103,15 +133,22 @@ func AcquireBox(req *AcquireBoxReq) AcquireBoxRsp {
 	}
 
 	// 生成付款单据
-	payErr := genePayOrder(boxMoney, user_box_Id)
+	prePayId, payErr := genePayOrder(boxMoney, user_box_Id, userInfo.WXToken)
 	if payErr != nil {
 		log.Errorf("[AcquireBox]genePayOrder failed:%+v,%+v", req, payErr)
 		rsp.Ret = lib.RetInternalError
 		return rsp
 	}
 
+	if updatePrePayErr := updateCashPrePay(userInfo.PersonID, user_box_Id, prePayId); updatePrePayErr != nil {
+		log.Errorf("[AcquireBox]updateCashPrePay failed:%+v,%+v", req, updatePrePayErr)
+		rsp.Ret = lib.RetInternalError
+		return rsp
+	}
+
 	rsp.Ret = lib.RetSuccess
-	rsp.PayID = user_box_Id
+	rsp.UserBoxID = user_box_Id
+	rsp.PayID = prePayId
 
 	return rsp
 }
@@ -121,6 +158,7 @@ type AcquireBoxCheckReq struct {
 	BoxID         int    `json:"boxid"`
 	PayID         string `json:"payid"`          // 支付id
 	InternalToken string `json:"internal_token"` // 如果已经有内部票据，则携带
+	UserBoxID     string `json:"user_box_id"`    // 内部订单id
 }
 
 type AcquireBoxCheckRsp struct {
@@ -139,15 +177,14 @@ func AcquireBoxCheck(req *AcquireBoxCheckReq) AcquireBoxCheckRsp {
 	}
 
 	// 校验订单状态
-	checkErr := payOrderCheck(req.PayID)
-	if checkErr != nil {
+	if !payOrderCheck(req.PayID) {
 		log.Errorf("[AcquireBoxCheck]check failed:%+v,%+v,%+v", req.PersonID, req.PayID, req.PayID)
 		rsp.Ret = lib.RetInternalError
 		return rsp
 	}
 
 	// 完成订单，获得盒子
-	finishErr := finishAcquireBox(req.PersonID, req.PayID)
+	finishErr := finishAcquireBox(req.PersonID, req.UserBoxID, req.PayID)
 	if finishErr != nil {
 		log.Errorf("[AcquireBox]finishAcquireBox failed:%+v,%+v", req, finishErr)
 		rsp.Ret = lib.RetInternalError

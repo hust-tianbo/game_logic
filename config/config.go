@@ -15,6 +15,13 @@ type Config struct {
 	DBUser   string `yaml:"db_user"`
 	DBSecret string `yaml:"db_secret"`
 	DBIP     string `yaml:"db_ip"`
+
+	MchID        string `yaml:"mch_id"`
+	ApiV3        string `yaml:"api_key"`
+	AppID        string `yaml:"app_id"`
+	SerialNumber string `yaml:"serial_number"`
+	PrivatePath  string `yaml:"private_path"`
+	NotifyUrl    string `yaml:"notify_url"`
 }
 
 func GetConfig() *Config {

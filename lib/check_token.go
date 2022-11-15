@@ -14,6 +14,7 @@ type CheckAuthRsp struct {
 	Msg           string `json:"msg"`            // 错误信息
 	InternalToken string `json:"internal_token"` // 内部票据
 	PersonID      string `json:"personid"`       // 内部id
+	WXToken       string `json:"wxtoken"`
 }
 
 func CheckToken(pid string, token string) bool {
@@ -37,4 +38,27 @@ func CheckToken(pid string, token string) bool {
 	json.Unmarshal(body, &res)
 
 	return res.Ret == RetSuccess
+}
+
+func CheckTokenDirect(code string) (*CheckAuthRsp, bool) {
+	url := fmt.Sprintf("https://127.0.0.1:50052/check_auth?code=%+v&return_wxtoken=%+v", code, true)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Errorf("[CheckToken]req failed:%+|%+v", url, err)
+		return nil, false
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorf("[CheckToken]read content failed:%+v|%+v", code, err)
+		return nil, false
+	}
+
+	var res CheckAuthRsp
+	json.Unmarshal(body, &res)
+
+	return &res, res.Ret == RetSuccess
 }

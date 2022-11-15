@@ -3,6 +3,7 @@ package wxpay
 import (
 	"context"
 
+	"github.com/hust-tianbo/game_logic/config"
 	"github.com/hust-tianbo/go_lib/log"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
@@ -11,11 +12,12 @@ import (
 func PreOrder(pay_id string, amount int, openid string) (*jsapi.PrepayWithRequestPaymentResponse, error) {
 	client := getWechatPaySvr()
 
+	cfg := config.GetConfig()
 	svc := jsapi.JsapiApiService{Client: client}
 	ctx := context.Background()
 	resp, _, err := svc.PrepayWithRequestPayment(ctx, jsapi.PrepayRequest{
-		Appid:       core.String(appID),
-		Mchid:       core.String(mchID),
+		Appid:       core.String(cfg.AppID),
+		Mchid:       core.String(cfg.MchID),
 		Description: core.String("兑换盒子"),
 		OutTradeNo:  core.String(pay_id),
 		Attach:      core.String("自定义数据说明"),
