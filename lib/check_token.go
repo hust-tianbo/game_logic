@@ -41,7 +41,7 @@ func CheckToken(pid string, token string) bool {
 }
 
 func CheckTokenDirect(code string) (*CheckAuthRsp, bool) {
-	url := fmt.Sprintf("https://127.0.0.1:50052/check_auth?code=%+v&return_wxtoken=%+v", code, true)
+	url := fmt.Sprintf("http://127.0.0.1:50052/check_auth?code=%+v&return_wxtoken=%+v", code, true)
 
 	resp, err := http.Get(url)
 	if err != nil {
