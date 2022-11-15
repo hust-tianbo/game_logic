@@ -18,7 +18,7 @@ type CheckAuthRsp struct {
 }
 
 func CheckToken(pid string, token string) bool {
-	url := fmt.Sprintf("https://127.0.0.1:50052/check_auth?personid=%+v&internal_token=%+v", pid, token)
+	url := fmt.Sprintf("http://127.0.0.1:50052/check_auth?personid=%+v&internal_token=%+v", pid, token)
 
 	resp, err := http.Get(url)
 	if err != nil {
